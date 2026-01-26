@@ -72,7 +72,7 @@ async def execute_rate(user_id: int, bot: Bot, amount: int,
         await session.increment_user_value(user.referral, 'revives', 1)
         await session.increment_user_value(user.referral, 'revives_earn', 1)
 
-    await session.increment_user_value(user_id, rate_type, amount)
+    await session.increment_user_value(user_id, 'revives' if rate_type == 'revive' else 'restores', amount)
     try:
         await bot.send_message(
             chat_id=user_id,
