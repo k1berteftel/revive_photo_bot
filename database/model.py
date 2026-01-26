@@ -19,8 +19,8 @@ class UsersTable(Base):
     name: Mapped[str] = mapped_column(VARCHAR)
     user_id: Mapped[int] = mapped_column(BigInteger, unique=True)
 
-    restores: Mapped[int] = mapped_column(Integer, default=10)
-    revives: Mapped[int] = mapped_column(Integer, default=10)
+    restores: Mapped[int] = mapped_column(Integer, default=0)
+    revives: Mapped[int] = mapped_column(Integer, default=0)
 
     referral: Mapped[int] = mapped_column(BigInteger, default=None, nullable=True)
     refs: Mapped[int] = mapped_column(Integer, default=0)
