@@ -14,16 +14,18 @@ user_dialog = Dialog(
         Format('<b>Добро пожаловать, {full_name}</b>\n\nЯ помогаю восстанавливать и оживлять Ваши памятные снимки ✨'
                '\n\nЧто я умею?\n<b>🖼Реставрация</b>: Уберу царапины, пятна, восстановлю резкость и детали на Вашем фото.'
                '\n<b>🎬Оживление</b>: Создам короткое видео из Вашего фото, где персонажи слегка улыбаются, двигают '
-               'головой, целуются, или выполняют какие-то действия по вашему запросу.'
+               'головой, целуются или выполняют какие-то действия по вашему запросу.'
                '\n\n👇 Используйте кнопки ниже для навигации.'),
         Row(
             SwitchTo(Const('🖼️ Реставрация'), id='get_restore_photo_switcher', state=startSG.get_restore_photo),
             SwitchTo(Const('🎬Оживить фото'), id='get_revive_photo_switcher', state=startSG.get_revive_photo),
         ),
         Column(
+            SwitchTo(Const('📋Инструкция'), id='manual_switcher', state=startSG.manual),
             SwitchTo(Const('🎁Бесплатные генерации'), id='ref_menu_switcher', state=startSG.ref_menu),
             Start(Const('💰Пополнить баланс'), id='payment_dialog_start', state=PaymentSG.choose_rate_type),
             SwitchTo(Const('👤Профиль'), id='profile_switcher', state=startSG.profile),
+            Url(Const('🛠Тех поддержка'), id='support_url', url=Const('https://t.me/svetlanka_support')),
             Start(Const('Админ панель'), id='admin', state=adminSG.start, when='admin')
         ),
         getter=getters.start_getter,
@@ -35,7 +37,6 @@ user_dialog = Dialog(
             func=getters.get_restore_photo,
             content_types=ContentType.PHOTO
         ),
-        Button(Const('📋Инструкция'), id='restore_manual_switcher', on_click=getters.manual_switcher),
         SwitchTo(Const('⬅️Назад'), id='back', state=startSG.start),
         state=startSG.get_restore_photo
     ),
@@ -45,7 +46,6 @@ user_dialog = Dialog(
             func=getters.get_revive_image,
             content_types=ContentType.PHOTO
         ),
-        Button(Const('📋Инструкция'), id='revive_manual_switcher', on_click=getters.manual_switcher),
         SwitchTo(Const('⬅️Назад'), id='back', state=startSG.start),
         state=startSG.get_revive_photo
     ),
@@ -104,7 +104,7 @@ user_dialog = Dialog(
     ),
     Window(
         Format('{text}'),
-        Button(Const('⬅️Назад'), id='back_generate_photo', on_click=getters.back_generate_photo),
+        SwitchTo(Const('⬅️Назад'), id='back', state=startSG.start),
         getter=getters.manual_getter,
         state=startSG.manual
     ),

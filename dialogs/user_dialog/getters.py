@@ -146,12 +146,6 @@ async def get_revive_prompt(msg: Message, widget: ManagedTextInput, dialog_manag
     await dialog_manager.switch_to(startSG.start)
 
 
-async def manual_switcher(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
-    switcher = clb.data.split('_')[0]
-    dialog_manager.dialog_data['switcher'] = switcher
-    await dialog_manager.switch_to(startSG.manual)
-
-
 async def manual_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
     text = ('<b>Инструкция по использованию бота</b>\n\nПривет! 👋\nЭтот бот помогает оживлять фотографии — добавлять '
             'движение, мимику и эмоции в портрет.\n\n<b>Вот как всё работает:</b>\n1. Отправь фото человека или '
@@ -169,16 +163,6 @@ async def manual_getter(event_from_user: User, dialog_manager: DialogManager, **
     return {
         'text': text
     }
-
-
-async def back_generate_photo(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
-    switcher = dialog_manager.dialog_data.get('switcher')
-    if not switcher:
-        await dialog_manager.switch_to(startSG.start)
-    elif switcher == 'restore':
-        await dialog_manager.switch_to(startSG.get_restore_photo)
-    elif switcher == 'revive':
-        await dialog_manager.switch_to(startSG.get_revive_photo)
 
 
 async def ref_menu_getters(event_from_user: User, dialog_manager: DialogManager, **kwargs):
