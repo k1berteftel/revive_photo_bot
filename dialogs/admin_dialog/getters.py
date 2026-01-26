@@ -211,7 +211,7 @@ async def get_rate_cost(msg: Message, widget: ManagedTextInput, dialog_manager: 
 
 
 async def get_rate_text(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    if len(text) > 10:
+    if len(text) > 15:
         await msg.answer('В дополнительном тексте должно быть не более 10 символов, пожалуйста попробуйте снова')
         return
     session: DataInteraction = dialog_manager.middleware_data.get('session')
