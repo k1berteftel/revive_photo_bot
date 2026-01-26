@@ -61,7 +61,7 @@ async def _image_to_url(image: PhotoSize, bot: Bot) -> str | None:
             data = await response.json()
             logger.info(f'get image json data: {data}')
             if data['success'] != True:
-                logger.info(f'Image to url output: {data['message']}')
+                logger.info(f'Image to url output: {data["message"]}')
                 return None
     try:
         os.remove(image_path)
