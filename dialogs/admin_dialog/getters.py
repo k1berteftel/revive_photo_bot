@@ -179,7 +179,7 @@ async def rate_menu_getter(dialog_manager: DialogManager, **kwargs):
     text = ''
     counter = 1
     for rate in rates:
-        text += f'(<em>{"Реставрация" if rate.rate == 'restore' else "Оживление"}</em>)|({counter}) - {rate.amount} за {rate.cost}₽\n'
+        text += f'(<em>{"Реставрация" if rate.rate == "restore" else "Оживление"}</em>)|({counter}) - {rate.amount} за {rate.cost}₽\n'
         counter += 1
     return {'rate': text if text else 'Отсутствуют'}
 
