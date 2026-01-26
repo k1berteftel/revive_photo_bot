@@ -51,10 +51,6 @@ async def main():
     await configurate_tables(session)
     db = DataInteraction(session)
 
-    await db.increment_user_value(5272552194, 'restores', 10)
-    await db.increment_user_value(5272552194, 'revives', 10)
-
-
     scheduler: AsyncIOScheduler = AsyncIOScheduler()
     scheduler.start()
 

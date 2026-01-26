@@ -35,7 +35,7 @@ async def get_restore_photo(msg: Message, widget: MessageInput, dialog_manager: 
         dialog_manager.dialog_data['gen'] = 'restore'
         await dialog_manager.switch_to(startSG.enough_balance)
         return
-    enable_photos = [[photo for photo in msg.photo[::-1] if photo.width in range(300, 820) and photo.height in range(300, 820)]]
+    enable_photos = [photo for photo in msg.photo[::-1] if photo.width in range(300, 820) and photo.height in range(300, 820)]
     photo = enable_photos[0] if enable_photos else msg.photo[-1]
     result = await generate_wrapper(
         restore_image,
@@ -69,8 +69,7 @@ async def get_revive_image(msg: Message, widget: MessageInput, dialog_manager: D
         dialog_manager.dialog_data['gen'] = 'revive'
         await dialog_manager.switch_to(startSG.enough_balance)
         return
-    enable_photos = [
-        [photo for photo in msg.photo[::-1] if photo.width in range(300, 820) and photo.height in range(300, 820)]]
+    enable_photos = [photo for photo in msg.photo[::-1] if photo.width in range(300, 820) and photo.height in range(300, 820)]
     photo = enable_photos[0] if enable_photos else msg.photo[-1]
     dialog_manager.dialog_data['photo'] = photo
     await dialog_manager.switch_to(startSG.revive_action_menu, show_mode=ShowMode.DELETE_AND_SEND)
