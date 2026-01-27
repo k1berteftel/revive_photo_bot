@@ -1,5 +1,5 @@
 from aiogram.types import ContentType
-from aiogram_dialog import Dialog, Window
+from aiogram_dialog import Dialog, Window, ShowMode
 from aiogram_dialog.widgets.kbd import SwitchTo, Column, Row, Button, Group, Select, Start, Url
 from aiogram_dialog.widgets.text import Format, Const
 from aiogram_dialog.widgets.input import TextInput, MessageInput
@@ -41,6 +41,18 @@ user_dialog = Dialog(
         state=startSG.get_restore_photo
     ),
     Window(
+        DynamicMedia('media'),
+        Const('✅Ваша реставрация фото готова'),
+        Group(
+            SwitchTo(Const('🖼️ Реставрация'), id='get_restore_photo_switcher', state=startSG.get_restore_photo, show_mode=ShowMode.SEND),
+            SwitchTo(Const('🎬Оживить фото'), id='get_revive_photo_switcher', state=startSG.get_revive_photo, show_mode=ShowMode.SEND),
+            SwitchTo(Const('🏠️Главное меню'), id='back', state=startSG.start, show_mode=ShowMode.SEND),
+            width=2
+        ),
+        getter=getters.restore_result_getter,
+        state=startSG.restore_result
+    ),
+    Window(
         Const('🎬Пришлите фотографию и я оживлю её для Вас ✨'),
         MessageInput(
             func=getters.get_revive_image,
@@ -71,6 +83,18 @@ user_dialog = Dialog(
         ),
         SwitchTo(Const('⬅️Назад'), id='back_revive_action_menu', state=startSG.revive_action_menu),
         state=startSG.get_revive_prompt
+    ),
+    Window(
+        DynamicMedia('media'),
+        Const('✅Ваше оживление фото готово'),
+        Group(
+            SwitchTo(Const('🖼️ Реставрация'), id='get_restore_photo_switcher', state=startSG.get_restore_photo, show_mode=ShowMode.SEND),
+            SwitchTo(Const('🎬Оживить фото'), id='get_revive_photo_switcher', state=startSG.get_revive_photo, show_mode=ShowMode.SEND),
+            SwitchTo(Const('🏠️Главное меню'), id='back', state=startSG.start, show_mode=ShowMode.SEND),
+            width=2
+        ),
+        getter=getters.revive_result_getter,
+        state=startSG.revive_result
     ),
     Window(
         Format('{text}'),

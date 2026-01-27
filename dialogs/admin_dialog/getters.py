@@ -67,6 +67,45 @@ async def get_users_txt(clb: CallbackQuery, widget: Button, dialog_manager: Dial
         ...
 
 
+async def get_user_data(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    try:
+        user_id = int(text)
+        user = await session.get_user(user_id)
+    except Exception:
+        if not text.startswith('@'):
+            await msg.answer('Юзернейм должен начинаться с @ , пожалуйста попробуйте снова')
+            return
+        user = await session.get_user_by_username(text[1::])
+    if not user:
+        await msg.answer('Такого пользователя в боте не найдено, пожалуйста попробуйте еще раз')
+        return
+    dialog_manager.dialog_data['user_id'] = user.user_id
+    await dialog_manager.switch_to(adminSG.choose_delivery_type)
+
+
+async def choose_delivery_type(clb: CallbackQuery, widget: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['rate'] = clb.data.split('_')[0]
+    await dialog_manager.switch_to(adminSG.get_delivery_amount)
+
+
+async def get_delivery_amount(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    try:
+        amount = int(text)
+    except Exception:
+        await msg.answer('Кол-во генераций должно быть числом, пожалуйста попробуйте снова')
+        return
+    session: DataInteraction = dialog_manager.middleware_data.get('session')
+    user_id = dialog_manager.dialog_data.get('user_id')
+    rate = dialog_manager.dialog_data.get('rate')
+
+    await session.increment_user_value(user_id, rate, amount)
+    await msg.answer('Генерации были успешно начислены данному пользователю')
+
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(adminSG.start)
+
+
 async def deeplinks_menu_getter(dialog_manager: DialogManager, **kwargs):
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     buttons = dialog_manager.dialog_data.get('deeplinks')

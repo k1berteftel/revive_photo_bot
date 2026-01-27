@@ -1,4 +1,4 @@
-from aiogram.types import CallbackQuery, User, Message
+from aiogram.types import CallbackQuery, User, Message, ContentType
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.api.entities import MediaAttachment
 from aiogram_dialog.widgets.kbd import Button, Select
@@ -52,14 +52,18 @@ async def get_restore_photo(msg: Message, widget: MessageInput, dialog_manager: 
         dialog_manager.dialog_data.clear()
         await dialog_manager.switch_to(startSG.start)
         return
-    await msg.answer_photo(
-        photo=result,
-        caption='✅Ваша реставрация фото готова'
-    )
     await session.increment_user_value(msg.from_user.id, 'restores', -1)
     await session.increment_user_value(msg.from_user.id, 'restores_count', 1)
-    dialog_manager.dialog_data.clear()
-    await dialog_manager.switch_to(startSG.start)
+    dialog_manager.dialog_data['media'] = result
+    await dialog_manager.switch_to(startSG.restore_result)
+
+
+async def restore_result_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
+    media = dialog_manager.dialog_data.get('media')
+    media = MediaAttachment(type=ContentType.PHOTO, url=media)
+    return {
+        'media': media
+    }
 
 
 async def get_revive_image(msg: Message, widget: MessageInput, dialog_manager: DialogManager):
@@ -97,14 +101,10 @@ async def revive_action_choose(clb: CallbackQuery, widget: Button, dialog_manage
         await dialog_manager.switch_to(startSG.start)
         return
     print(result)
-    await clb.message.answer_video(
-        video=result,
-        caption='✅Ваше оживление фото готово'
-    )
     await session.increment_user_value(clb.from_user.id, 'revives', -1)
-    await session.increment_user_value(clb.from_user.id, 'revive_count', 1)
-    dialog_manager.dialog_data.clear()
-    await dialog_manager.switch_to(startSG.start)
+    await session.increment_user_value(clb.from_user.id, 'revives_count', 1)
+    dialog_manager.dialog_data['media'] = result
+    await dialog_manager.switch_to(startSG.revive_result)
 
 
 async def get_revive_prompt(msg: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -135,14 +135,18 @@ async def get_revive_prompt(msg: Message, widget: ManagedTextInput, dialog_manag
         await dialog_manager.switch_to(startSG.start)
         return
     print(result)
-    await msg.answer_video(
-        video=result,
-        caption='✅Ваше оживление фото готово'
-    )
     await session.increment_user_value(msg.from_user.id, 'revives', -1)
-    await session.increment_user_value(msg.from_user.id, 'revive_count', 1)
-    dialog_manager.dialog_data.clear()
-    await dialog_manager.switch_to(startSG.start)
+    await session.increment_user_value(msg.from_user.id, 'revives_count', 1)
+    dialog_manager.dialog_data['media'] = result
+    await dialog_manager.switch_to(startSG.revive_result)
+
+
+async def revive_result_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
+    media = dialog_manager.dialog_data.get('media')
+    media = MediaAttachment(type=ContentType.VIDEO, url=media)
+    return {
+        'media': media
+    }
 
 
 async def manual_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
@@ -182,8 +186,8 @@ async def ref_menu_getters(event_from_user: User, dialog_manager: DialogManager,
 async def profile_getter(event_from_user: User, dialog_manager: DialogManager, **kwargs):
     session: DataInteraction = dialog_manager.middleware_data.get('session')
     user = await session.get_user(event_from_user.id)
-    text = (f'<b>👤 Ваш профиль</b>\n\n<blockquote>🆔ID: {event_from_user.id}\nВсего реставраций: {user.restores}\n'
-            f'Всего оживлений: {user.revives}\n🖼Восстановлено фотографий: {user.restores_count}'
+    text = (f'<b>👤 Ваш профиль</b>\n\n<blockquote>🆔ID: {event_from_user.id}\nОсталось реставраций: {user.restores}\n'
+            f'Осталось оживлений: {user.revives}\n🖼Восстановлено фотографий: {user.restores_count}'
             f'\n🎬Оживлено фотографий: {user.revives_count}</blockquote>')
     return {
         'text': text

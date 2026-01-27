@@ -15,6 +15,7 @@ admin_dialog = Dialog(
         Column(
             Button(Const('📊 Получить статистику'), id='get_static', on_click=getters.get_static),
             SwitchTo(Const('🛫Сделать рассылку'), id='mailing_menu_switcher', state=adminSG.get_mail),
+            SwitchTo(Const('Выдать генерации'), id='get_user_delivery_switcher', state=adminSG.get_user_delivery),
             SwitchTo(Const('Управление тарифами'), id='rate_menu_switcher', state=adminSG.rate_menu),
             SwitchTo(Const('🔗 Управление диплинками'), id='deeplinks_menu_switcher', state=adminSG.deeplinks_menu),
             SwitchTo(Const('👥 Управление админами'), id='admin_menu_switcher', state=adminSG.admin_menu),
@@ -22,6 +23,33 @@ admin_dialog = Dialog(
         ),
         Cancel(Const('Назад'), id='close_admin'),
         state=adminSG.start
+    ),
+    Window(
+        Const('Введите @username или Telegram ID пользователя, которому вы хотели бы выдать генерации'),
+        TextInput(
+            id='get_user_data',
+            on_success=getters.get_user_data
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back', state=adminSG.start),
+        state=adminSG.get_user_delivery
+    ),
+    Window(
+        Const('Выберите генерацию, которую вы хотели бы начислить пользователю:'),
+        Column(
+            Button(Const('Реставрации'), id='restores_delivery_choose', on_click=getters.choose_delivery_type),
+            Button(Const('Оживления'), id='revives_delivery_choose', on_click=getters.choose_delivery_type),
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back_get_user_delivery', state=adminSG.get_user_delivery),
+        state=adminSG.choose_delivery_type
+    ),
+    Window(
+        Const('Введите количество генераций, которое вы хотели бы выдать пользователю'),
+        TextInput(
+            id='get_delivery_amount',
+            on_success=getters.get_delivery_amount
+        ),
+        SwitchTo(Const('🔙 Назад'), id='back_choose_delivery_type', state=adminSG.choose_delivery_type),
+        state=adminSG.get_delivery_amount
     ),
     Window(
         Const('<b>Созданные тарифы: </b>'),

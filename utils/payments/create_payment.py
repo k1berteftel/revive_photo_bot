@@ -31,11 +31,11 @@ async def get_yookassa_url(amount: int, description: str):
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://t.me/Ultragpt_robot"
+            "return_url": "https://t.me/Fotovmagic_bot"
         },
         "receipt": {
             "customer": {
-                "email": "ggasikon@gmail.com"
+                "email": "kkulis985@gmail.com"
             },
             'items': [
                 {

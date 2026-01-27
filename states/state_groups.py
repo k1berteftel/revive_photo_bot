@@ -7,10 +7,12 @@ class startSG(StatesGroup):
     start = State()
 
     get_restore_photo = State()
+    restore_result = State()
 
     get_revive_photo = State()
     revive_action_menu = State()
     get_revive_prompt = State()
+    revive_result = State()
 
     manual = State()
 
@@ -45,6 +47,10 @@ class adminSG(StatesGroup):
     get_rate_amount = State()
     get_rate_text = State()
     del_rate = State()
+
+    get_user_delivery = State()
+    choose_delivery_type = State()
+    get_delivery_amount = State()
 
     admin_menu = State()
     admin_del = State()
