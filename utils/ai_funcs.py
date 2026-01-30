@@ -71,7 +71,7 @@ async def _image_to_url(image: PhotoSize, bot: Bot) -> str | None:
 
 
 async def _polling_restore_image(task_id: str) -> list[str] | dict:
-    url = f'https://api.unifically.com/flux.2-pro/status/{task_id}'
+    url = f'https://api.unifically.com/v1/tasks/{task_id}'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {config.unifically.api_token}'
@@ -95,19 +95,22 @@ async def restore_image(image: PhotoSize, bot: Bot):
     logger.info('start restore image')
     image = await _image_to_url(image, bot)
     logger.info(f'get image url: {image}')
-    url = 'https://api.unifically.com/flux.2-pro/generate'
+    url = 'https://api.unifically.com/v1/tasks'
 
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
     data = {
-        "prompt": "extremely high detail professional photo restoration and colorization, remove all scratches, dust, "
-                  "stains, noise, and damage, enhance facial features and textures, realistic skin tones, natural "
-                  "color palette, sharp focus on eyes, improve resolution and clarity, cinematic lighting, 8k, "
-                  "masterpiece, photorealistic",
-        "image_urls": [image],
-        "quality": "2K"
+        "model": "black-forest-labs/flux.2-pro",
+        "input": {
+            "prompt": "extremely high detail professional photo restoration and colorization, remove all scratches, dust, "
+                      "stains, noise, and damage, enhance facial features and textures, realistic skin tones, natural "
+                      "color palette, sharp focus on eyes, improve resolution and clarity, cinematic lighting, 8k, "
+                      "masterpiece, photorealistic",
+            "image_urls": [image],
+            "quality": "2K"
+        }
     }
     async with aiohttp.ClientSession() as client:
         async with client.post(url, headers=headers, json=data, ssl=False) as response:
@@ -132,7 +135,7 @@ async def _polling_revive_image(task_id: str):
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
-    url = f'https://api.unifically.com/higgsfield/feed/{task_id}'
+    url = f'https://api.unifically.com/v1/tasks/{task_id}'
 
     async with aiohttp.ClientSession() as client:
         while True:
@@ -150,16 +153,18 @@ async def _polling_revive_image(task_id: str):
 
 async def revive_image(prompt: str, image: PhotoSize, bot: Bot, motion_id: str = 'd2389a9a-91c2-4276-bc9c-c9e35e8fb85a'):
     image = await _image_to_url(image, bot)
-    url = 'https://api.unifically.com/higgsfield/generate'
+    url = 'https://api.unifically.com/v1/tasks'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
     data = {
-        "prompt": prompt,
-        "start_image_url": image,
-        "model": "standard",
-        "motion_id": motion_id
+        "model": "higgsfield-ai/standard",
+        "input": {
+            "prompt": prompt,
+            "start_image_url": image,
+            "motion_id": motion_id
+        }
     }
     async with aiohttp.ClientSession() as client:
         async with client.post(url, headers=headers, json=data) as response:

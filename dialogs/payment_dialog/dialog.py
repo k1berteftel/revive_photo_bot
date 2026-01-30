@@ -20,7 +20,7 @@ payment_dialog = Dialog(
         state=PaymentSG.choose_rate_type
     ),
     Window(
-        Format('Выберите количество {rate}, которое вы хотели бы приобрести'),
+        Format('Выберите количество {rate}, которое Вы хотели бы приобрести:'),
         Group(
             Select(
                 Format('{item[0]}'),

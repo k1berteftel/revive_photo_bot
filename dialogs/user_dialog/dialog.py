@@ -32,7 +32,7 @@ user_dialog = Dialog(
         state=startSG.start
     ),
     Window(
-        Const('🖼 Пришлите фотографию и я восстановлю ее для Вас 🪄'),
+        Const('🖼 Пришлите фотографию и я восстановлю её для Вас 🪄'),
         MessageInput(
             func=getters.get_restore_photo,
             content_types=ContentType.PHOTO
