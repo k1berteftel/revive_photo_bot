@@ -42,7 +42,7 @@ user_dialog = Dialog(
     ),
     Window(
         DynamicMedia('media'),
-        Const('✅Ваша реставрация фото готова'),
+        Const('✅ Ваша реставрация готова'),
         Group(
             SwitchTo(Const('🖼️ Реставрация'), id='get_restore_photo_switcher', state=startSG.get_restore_photo, show_mode=ShowMode.SEND),
             SwitchTo(Const('🎬Оживить фото'), id='get_revive_photo_switcher', state=startSG.get_revive_photo, show_mode=ShowMode.SEND),
@@ -86,7 +86,7 @@ user_dialog = Dialog(
     ),
     Window(
         DynamicMedia('media'),
-        Const('✅Ваше оживление фото готово'),
+        Const('✅ Ваше оживление готово'),
         Group(
             SwitchTo(Const('🖼️ Реставрация'), id='get_restore_photo_switcher', state=startSG.get_restore_photo, show_mode=ShowMode.SEND),
             SwitchTo(Const('🎬Оживить фото'), id='get_revive_photo_switcher', state=startSG.get_revive_photo, show_mode=ShowMode.SEND),

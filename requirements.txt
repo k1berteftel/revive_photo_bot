@@ -8,6 +8,7 @@ nats-py
 ormsgpack
 greenlet
 pydantic
+pillow
 SQLAlchemy
 pytz
 yookassa-async

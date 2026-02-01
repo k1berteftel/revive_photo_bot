@@ -8,6 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot
 from nats.js import JetStreamContext
 
+from utils.text_utils import get_rate_form
 from utils.payments.create_payment import check_yookassa_payment, check_oxa_payment
 from database.action_data_class import DataInteraction
 from config_data.config import Config, load_config
@@ -76,8 +77,8 @@ async def execute_rate(user_id: int, bot: Bot, amount: int,
     try:
         await bot.send_message(
             chat_id=user_id,
-            text=f'Вы успешно приобрели {amount} {"Реставраций" if rate_type == "restore" else "Оживлений"}, '
-                 f'пожалуйста перезапустите бота нажав /start'
+            text=f'Вы успешно приобрели {amount} {get_rate_form(amount, rate_type)}, '
+                 f'пожалуйста перезапустите бота нажав\n/start'
         )
     except Exception:
         await session.set_active(user_id, 0)
