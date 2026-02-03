@@ -77,7 +77,7 @@ async def execute_rate(user_id: int, bot: Bot, amount: int,
     try:
         await bot.send_message(
             chat_id=user_id,
-            text=f'Вы успешно приобрели {amount} {get_rate_form(amount, rate_type)}, '
+            text=f'Вы успешно приобрели {amount} {get_rate_form(amount, rate_type), True}, '
                  f'пожалуйста перезапустите бота нажав\n/start'
         )
     except Exception:

@@ -1,5 +1,5 @@
 
-def get_rate_form(amount: int, rate_type: str = "restore") -> str:
+def get_rate_form(amount: int, rate_type: str = "restore", payment: bool = False) -> str:
     """
     Склонение слов 'реставрация' или 'оживление' в зависимости от числа
 
@@ -11,7 +11,7 @@ def get_rate_form(amount: int, rate_type: str = "restore") -> str:
         Слово в правильной форме
     """
     if rate_type == "restore":
-        word_forms = ["реставрация", "реставрации", "реставраций"]
+        word_forms = ["реставрация" if not payment else 'реставрацию', "реставрации", "реставраций"]
     else:
         word_forms = ["оживление", "оживления", "оживлений"]
 
