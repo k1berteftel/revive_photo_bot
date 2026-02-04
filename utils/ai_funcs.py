@@ -35,18 +35,30 @@ ALLOWED_ASPECT_RATIOS = {
 }
 
 
-def _find_closest_aspect_ratio(width: int, height: int) -> str:
+def _find_closest_aspect_ratio(width: int, height: int, use_min: bool = True) -> str:
     """
-    Находит ближайшее допустимое соотношение сторон.
+    Находит ближайшее или наиболее отдаленное допустимое соотношение сторон.
+
+    Args:
+        width: ширина изображения
+        height: высота изображения
+        use_min: если True - находит минимально отличающееся соотношение,
+                если False - находит максимально отличающееся соотношение
     """
     if height == 0:
         return '1:1'  # fallback
 
     current_ratio = width / height
 
-    # Находим ближайшее допустимое соотношение
-    closest_ratio = max(ALLOWED_ASPECT_RATIOS.items(),
-                        key=lambda x: abs(x[1] - current_ratio))
+    if use_min:
+        # Находим ближайшее допустимое соотношение (минимальное отклонение)
+        closest_ratio = min(ALLOWED_ASPECT_RATIOS.items(),
+                            key=lambda x: abs(x[1] - current_ratio))
+    else:
+        # Находим наиболее отдаленное допустимое соотношение (максимальное отклонение)
+        closest_ratio = max(ALLOWED_ASPECT_RATIOS.items(),
+                            key=lambda x: abs(x[1] - current_ratio))
+
     return closest_ratio[0]
 
 
@@ -83,15 +95,17 @@ def _resize_to_target_aspect(image: Image.Image, target_ratio: str) -> Image.Ima
     return cropped
 
 
-async def _image_to_url(image: PhotoSize, bot: Bot, resize: bool = False) -> str | None:
+async def _image_to_url(image: PhotoSize, bot: Bot, resize: bool = False, use_min: bool = True) -> str | None:
     """
     Загружает изображение и возвращает URL
 
     Args:
         image: PhotoSize объект из aiogram
         bot: Bot объект для скачивания
-        resize: Если True, изменяет изображение до ближайшего допустимого формата.
+        resize: Если True, изменяет изображение до допустимого формата.
                 Если False, оставляет как есть.
+        use_min: Если True - использует минимально отличающийся формат,
+                если False - использует максимально отличающийся формат
 
     Returns:
         URL загруженного изображения или None при ошибке
@@ -116,18 +130,20 @@ async def _image_to_url(image: PhotoSize, bot: Bot, resize: bool = False) -> str
                 img = rgb_img
 
             if resize:
-                # Находим ближайшее допустимое соотношение и меняем фото
-                closest_ratio = _find_closest_aspect_ratio(img.width, img.height)
+                # Находим допустимое соотношение сторон (ближайшее или наиболее отдаленное)
+                target_ratio = _find_closest_aspect_ratio(img.width, img.height, use_min=use_min)
                 current_ratio = img.width / img.height
 
                 logger.info(
-                    f'Resizing image: {img.width}x{img.height}, current ratio: {current_ratio:.3f}, target ratio: {closest_ratio}')
+                    f'Resizing image (use_min={use_min}): {img.width}x{img.height}, '
+                    f'current ratio: {current_ratio:.3f}, target ratio: {target_ratio}')
 
-                processed_img = _resize_to_target_aspect(img, closest_ratio)
+                processed_img = _resize_to_target_aspect(img, target_ratio)
                 processed_img.save(processed_path, 'JPEG', quality=95, optimize=True)
 
                 logger.info(
-                    f'Resized to: {processed_img.width}x{processed_img.height}, new ratio: {processed_img.width / processed_img.height:.3f}')
+                    f'Resized to: {processed_img.width}x{processed_img.height}, '
+                    f'new ratio: {processed_img.width / processed_img.height:.3f}')
             else:
                 # Если resize=False, используем оригинал
                 logger.info(f'Using original image: {img.width}x{img.height}, ratio: {img.width / img.height:.3f}')
@@ -198,9 +214,36 @@ async def _polling_restore_image(task_id: str) -> list[str] | dict:
             await asyncio.sleep(6)
 
 
-async def restore_image(image: PhotoSize, bot: Bot, resize: bool = False):
-    logger.info('start restore image')
-    image_url = await _image_to_url(image, bot, resize)
+async def restore_image(image: PhotoSize, bot: Bot, resize: bool = False, attempt: int = 0):
+    """
+    Восстанавливает изображение с попытками:
+    1. Без ресайза (если это первая попытка)
+    2. С ресайзом до ближайшего формата (минимальное отклонение)
+    3. С ресайзом до наиболее отдаленного формата (максимальное отклонение)
+    """
+    logger.info(f'start restore image, attempt: {attempt}')
+
+    # Определяем параметры для текущей попытки
+    if attempt == 0:
+        # Первая попытка: оригинальное изображение
+        current_resize = False
+        use_min = True  # не используется при resize=False
+    elif attempt == 1:
+        # Вторая попытка: ресайз до ближайшего формата
+        current_resize = True
+        use_min = True
+    elif attempt == 2:
+        # Третья попытка: ресайз до наиболее отдаленного формата
+        current_resize = True
+        use_min = False
+    else:
+        # Больше попыток нет
+        return {'error': 'Max attempts exceeded (3 attempts)'}
+
+    image_url = await _image_to_url(image, bot, resize=current_resize, use_min=use_min)
+    if not image_url:
+        return {'error': 'Failed to upload image'}
+
     logger.info(f'get image url: {image_url}')
     url = 'https://api.unifically.com/v1/tasks'
 
@@ -220,26 +263,35 @@ async def restore_image(image: PhotoSize, bot: Bot, resize: bool = False):
             "resolution": "2k"
         }
     }
+
     async with aiohttp.ClientSession() as client:
         async with client.post(url, headers=headers, json=data, ssl=False) as response:
             logger.info(f'response status: {response.status}')
-            #print(await response.text())
             if response.status not in [200, 201]:
-                data = await response.json()
-                code = data['data'].get('code')
-                message = data['data'].get('message')
-                print(code, message)
-                if not resize and code == 'validation_error':
-                    return await restore_image(image, bot, True)
+                error_data = await response.json()
+                code = error_data['data'].get('code')
+                message = error_data['data'].get('message')
+                print(f"Attempt {attempt + 1} failed: {code}, {message}")
+
+                # Если это validation_error и есть еще попытки
+                if code == 'validation_error' and attempt < 2:
+                    logger.info(f'Retrying with different aspect ratio, attempt: {attempt + 1}')
+                    return await restore_image(image, bot, True, attempt + 1)
+
                 return {'error': f"{code}: {message}"}
+
             data = await response.json()
             logger.info(f'post output data: {data}')
+
         if data['code'] != 200:
             return {'error': f"{data['data'].get('code')}: {data['data'].get('message')}"}
+
         if data['data'].get('output'):
             return data['data']['output']['image_url']
+
         task_id = data['data'].get('task_id')
         logger.info('success post image')
+
     return await _polling_restore_image(task_id)
 
 
