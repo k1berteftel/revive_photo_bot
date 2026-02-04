@@ -35,25 +35,19 @@ ALLOWED_ASPECT_RATIOS = {
 }
 
 
-def _is_aspect_ratio_allowed(width: int, height: int, tolerance: float = 0.02) -> tuple:
+def _find_closest_aspect_ratio(width: int, height: int) -> str:
     """
-    Проверяет, соответствует ли соотношение сторон одному из допустимых.
-    Возвращает (is_allowed, closest_ratio)
+    Находит ближайшее допустимое соотношение сторон.
     """
     if height == 0:
-        return False, None
+        return '1:1'  # fallback
 
     current_ratio = width / height
 
-    # Проверяем, соответствует ли текущее соотношение какому-либо допустимому
-    for ratio_name, ratio_value in ALLOWED_ASPECT_RATIOS.items():
-        if abs(current_ratio - ratio_value) <= tolerance:
-            return True, ratio_name
-
-    # Если не соответствует ни одному, находим ближайшее
-    closest_ratio = min(ALLOWED_ASPECT_RATIOS.items(),
+    # Находим ближайшее допустимое соотношение
+    closest_ratio = max(ALLOWED_ASPECT_RATIOS.items(),
                         key=lambda x: abs(x[1] - current_ratio))
-    return False, closest_ratio[0]
+    return closest_ratio[0]
 
 
 def _resize_to_target_aspect(image: Image.Image, target_ratio: str) -> Image.Image:
@@ -96,8 +90,8 @@ async def _image_to_url(image: PhotoSize, bot: Bot, resize: bool = False) -> str
     Args:
         image: PhotoSize объект из aiogram
         bot: Bot объект для скачивания
-        resize: Если True, изменяет изображение до допустимого формата.
-                Если False, оставляет как есть (даже если формат не подходит)
+        resize: Если True, изменяет изображение до ближайшего допустимого формата.
+                Если False, оставляет как есть.
 
     Returns:
         URL загруженного изображения или None при ошибке
@@ -121,26 +115,23 @@ async def _image_to_url(image: PhotoSize, bot: Bot, resize: bool = False) -> str
                 rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
                 img = rgb_img
 
-            # Проверяем, соответствует ли изображение допустимому формату
-            is_allowed, closest_ratio = _is_aspect_ratio_allowed(img.width, img.height)
+            if resize:
+                # Находим ближайшее допустимое соотношение и меняем фото
+                closest_ratio = _find_closest_aspect_ratio(img.width, img.height)
+                current_ratio = img.width / img.height
 
-            if not resize:
-                # Если resize=False, всегда используем оригинал
-                logger.info(f'Resize disabled, using original image: {img.width}x{img.height}')
-                img.save(processed_path, 'JPEG', quality=95, optimize=True)
-            elif is_allowed:
-                # Если resize=True но формат уже допустимый, используем оригинал
                 logger.info(
-                    f'Image aspect ratio is allowed, using original: {img.width}x{img.height}, ratio: {closest_ratio}')
-                img.save(processed_path, 'JPEG', quality=95, optimize=True)
-            else:
-                # Если resize=True и формат не допустимый, изменяем
-                logger.info(
-                    f'Resizing image: {img.width}x{img.height}, current ratio: {img.width / img.height:.3f}, target ratio: {closest_ratio}')
+                    f'Resizing image: {img.width}x{img.height}, current ratio: {current_ratio:.3f}, target ratio: {closest_ratio}')
+
                 processed_img = _resize_to_target_aspect(img, closest_ratio)
                 processed_img.save(processed_path, 'JPEG', quality=95, optimize=True)
+
                 logger.info(
                     f'Resized to: {processed_img.width}x{processed_img.height}, new ratio: {processed_img.width / processed_img.height:.3f}')
+            else:
+                # Если resize=False, используем оригинал
+                logger.info(f'Using original image: {img.width}x{img.height}, ratio: {img.width / img.height:.3f}')
+                img.save(processed_path, 'JPEG', quality=95, optimize=True)
 
         # Загружаем обработанное изображение
         url = 'https://files.storagecdn.online/upload'
@@ -237,6 +228,7 @@ async def restore_image(image: PhotoSize, bot: Bot, resize: bool = False):
                 data = await response.json()
                 code = data['data'].get('code')
                 message = data['data'].get('message')
+                print(code, message)
                 if not resize and code == 'validation_error':
                     return await restore_image(image, bot, True)
                 return {'error': f"{code}: {message}"}
