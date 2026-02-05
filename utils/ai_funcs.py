@@ -329,6 +329,7 @@ async def revive_image(prompt: str, image: PhotoSize, bot: Bot, motion_id: str =
             "prompt": prompt,
             "start_image_url": image,
             #"motion_id": motion_id
+            "resolution": "1080p",
             "duration": 4
             #"start_image_url": image,
         }
