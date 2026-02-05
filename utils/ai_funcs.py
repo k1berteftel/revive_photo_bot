@@ -324,12 +324,12 @@ async def revive_image(prompt: str, image: PhotoSize, bot: Bot, motion_id: str =
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
     data = {
-        "model": "higgsfield-ai/standard",
+        "model": "bytedance/seedance-1.5-pro",
         "input": {
             "prompt": prompt,
             "start_image_url": image,
-            "motion_id": motion_id
-            #"duration": 4
+            #"motion_id": motion_id
+            "duration": 4
             #"start_image_url": image,
         }
     }
