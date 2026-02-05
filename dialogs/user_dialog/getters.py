@@ -200,6 +200,6 @@ async def enough_balance_getter(event_from_user: User, dialog_manager: DialogMan
     gen = dialog_manager.dialog_data.get('gen')
     return {
         'balance': f'Всего реставраций на балансе: {user.restores}\nНеобходимо: 1' if gen == 'restore'
-        else f'Всего оживлений на балансе: {user.restores}\nНеобходимо: 1'
+        else f'Всего оживлений на балансе: {user.revives}\nНеобходимо: 1'
     }
 

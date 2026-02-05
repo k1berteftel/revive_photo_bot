@@ -324,14 +324,13 @@ async def revive_image(prompt: str, image: PhotoSize, bot: Bot, motion_id: str =
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
     data = {
-        "model": "bytedance/seedance-1.5-pro",
+        "model": "higgsfield-ai/standard",
         "input": {
             "prompt": prompt,
             "start_image_url": image,
-            "resolution": "1080p",
-            "duration": 4
+            "motion_id": motion_id
+            #"duration": 4
             #"start_image_url": image,
-            #"motion_id": motion_id
         }
     }
     async with aiohttp.ClientSession() as client:
@@ -346,25 +345,38 @@ async def revive_image(prompt: str, image: PhotoSize, bot: Bot, motion_id: str =
     return await _polling_revive_image(task_id)
 
 
-async def test_func():
-    url = 'https://api.unifically.com/higgsfield/motions'
-
+async def test_func(motion_id: str = 'd2389a9a-91c2-4276-bc9c-c9e35e8fb85a'):
+    #image = await _image_to_url(image, bot)
+    prompt = ("cinematic short film, professional color grading, person making gentle hugging gesture with arms, "
+              "affectionate expression, warm smile, subtle arm movement as if embracing someone, "
+              "emotional connection visible in eyes, soft natural lighting, realistic skin textures, "
+              "film grain, 24fps, 4k, photorealistic, masterpiece, modest clothing, family moment")
+    url = 'https://api.unifically.com/v1/tasks'
     headers = {
+        'Content-Type': 'application/json',
         'Authorization': f'Bearer {config.unifically.api_token}'
     }
-
     data = {
-        'size': 60,
-        'preset_family': 'higgsfield'
+        "model": "higgsfield-ai/standard",
+        "input": {
+            "prompt": prompt,
+            "start_image_url": "https://i.pinimg.com/736x/12/9e/43/129e43d6cf96d9d5e9fe95b387b561fd.jpg",
+            "motion_id": motion_id
+            #"duration": 4
+            #"start_image_url": image,
+        }
     }
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=data, headers=headers, ssl=False) as response:
-            if response.status not in [200, 201]:
-                logger.info(f'Error: {await response.json()}')
-                return None
+    async with aiohttp.ClientSession() as client:
+        async with client.post(url, headers=headers, json=data) as response:
+            if response.status != 200:
+                return {'error': await response.text()}
             data = await response.json()
-            print(data)
+            if data['code'] != 200:
+                error = f"{data['code']}: {data['data']['error']['message']}"
+                return {'error': error}
+            task_id = data['data']['task_id']
+    return await _polling_revive_image(task_id)
 
-#asyncio.run(test_func())
+
+print(asyncio.run(test_func()))
 
