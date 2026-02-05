@@ -378,5 +378,5 @@ async def test_func(motion_id: str = 'd2389a9a-91c2-4276-bc9c-c9e35e8fb85a'):
     return await _polling_revive_image(task_id)
 
 
-print(asyncio.run(test_func()))
+#print(asyncio.run(test_func()))
 
